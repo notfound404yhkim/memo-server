@@ -38,14 +38,22 @@ class MemoListResource(Resource):
     def get(self):
         
         user_id = get_jwt_identity()
-        print(user_id)
-        
 
+        # 쿼리 스트링 가져오기 (쿼리 파라미터)
+        # get에서는 쿼리 파라미터를 이용해 데이터를 가져옴
+        offset = request.args.get('offset')
+        limit = request.args.get('limit')
+        
+        print(offset)
+        print(limit)
+      
         try:
             connection = get_connection()
-            query = '''select *
+            query = '''select id,title,date,content
                         from memo
-                        where userId = %s;'''
+                        where userId = %s
+                        order by date
+                        limit '''+ str(offset) +''', '''+ str(limit) +'''    ;'''
             
             record = (user_id ,)
 
@@ -61,11 +69,6 @@ class MemoListResource(Resource):
             # JSOON은 문자열이나 숫자만 가능하므로
             # datetime을 문자열로 바꿔주어야 한다. 
 
-        
-            print()
-            print(result_list)
-            print()
-
             cursor.close()
             connection.close()
 
@@ -79,13 +82,12 @@ class MemoListResource(Resource):
         i = 0
         for row in result_list:
             result_list[i]['date'] = row['date'].isoformat()
-            result_list[i]['createdAt'] = row['createdAt'].isoformat()
-            result_list[i]['updateAt'] = row['updateAt'].isoformat()
+            # result_list[i]['createdAt'] = row['createdAt'].isoformat()
+            # result_list[i]['updateAt'] = row['updateAt'].isoformat()
             i = i+1
 
-        
         return {"result " : "success",
-            "memo" : result_list,
+            "items" : result_list,
             "count " : len(result_list)},200
     
 class MemoResource(Resource):
